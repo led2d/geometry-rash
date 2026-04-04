@@ -12,6 +12,16 @@ self.addEventListener("activate", (ev) => ev.waitUntil(self.clients.claim()));
 const DOMAIN_CHECK =
 	"const Ts=window[_0x6e411f(0xfa0)][_0x6e411f(0x1876)],bs=[0x67,0x65,0x6f,0x6d,0x65,0x74,0x72,0x79,0x64,0x61,0x73,0x68,0x2e,0x63,0x6f,0x6d]['map'](_0x1c1bb4=>String[_0x6e411f(0x370)](_0x1c1bb4))[_0x6e411f(0xb6b)]('');if(!(Ts===bs||Ts===_0x6e411f(0x7ec)+bs||Ts[_0x6e411f(0x696)]('.'+bs)||_0x6e411f(0x10b9)===Ts))throw document['body']['innerHTML']='',new Error('');";
 
+const OS_TABLE_HOOK = "=!0x0);function ls(";
+const OS_TABLE_PATCH = [
+	"=!0x0);",
+	"os[32]={'type':ss,'frame':null,'gridW':0,'gridH':0};",
+	"os[33]={'type':ss,'frame':null,'gridW':0,'gridH':0};",
+	"os[73]={'type':Ji,'frame':'square_c_05_001.png','gridW':1,'gridH':1};",
+	"os[110]={'type':$i,'frame':'d_chain_02_001.png','gridW':0,'gridH':0};",
+	"function ls(",
+].join("");
+
 const MUSIC_MAP: Record<number, string> = {
 	1: "StereoMadness",
 	2: "BackOnTrack",
@@ -52,12 +62,32 @@ async function getLevelId(clientId: string): Promise<number> {
 }
 
 registerRoute(
+	({ url }) =>
+		url.pathname === "/assets/GJ_WebSheet.json" ||
+		url.pathname === "/assets/GJ_WebSheet.png",
+	async ({ url }) => {
+		const cache = await caches.open("gd-expanded-atlas");
+		const cached = await cache.match(url.pathname);
+		if (cached) {
+			log.info(`Serving expanded atlas: ${url.pathname}`);
+
+			return cached;
+		}
+
+		return fetch(url.href);
+	},
+);
+
+registerRoute(
 	({ url }) => url.pathname === "/assets/index-game.js",
 	async () => {
 		const resp = await fetch("/assets/index-game.js");
-		const js = await resp.text();
+		let js = await resp.text();
 
-		return new Response(js.replace(DOMAIN_CHECK, ""), {
+		js = js.replace(DOMAIN_CHECK, "");
+		js = js.replace(OS_TABLE_HOOK, OS_TABLE_PATCH);
+
+		return new Response(js, {
 			headers: { "Content-Type": "application/javascript; charset=utf-8" },
 		});
 	},

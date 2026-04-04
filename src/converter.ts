@@ -1,16 +1,18 @@
 import pako from "pako";
 
 const SUPPORTED_IDS = new Set([
-	1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-	26, 27, 28, 29, 30, 39, 40, 41, 50, 61, 83, 103, 104, 105, 195, 196, 221, 392,
-	899, 901, 1006,
+	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+	24, 25, 26, 27, 28, 29, 30, 32, 33, 35, 36, 39, 40, 41, 50, 54, 61, 62, 65,
+	67, 68, 73, 83, 103, 104, 105, 110, 140, 142, 195, 196, 221, 392, 899, 901,
+	1006,
 ]);
 
 const TRIGGER_IDS = new Set([
-	22, 23, 24, 25, 26, 27, 28, 29, 30, 104, 105, 221, 899, 901, 1006,
+	22, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 104, 105, 221, 899, 901, 1006,
 ]);
-const PORTAL_IDS = new Set([12, 13]);
+const PORTAL_IDS = new Set([10, 11, 12, 13]);
 const DECO_GLOW_IDS = new Set([18, 19, 20, 21, 41]);
+const BACKGROUND_IDS = new Set([73]);
 
 const LEGACY_COLOR_MAP: Record<string, string> = {
 	kS29: "1000",
@@ -258,7 +260,8 @@ function convertHeader(header: Record<string, string>): Record<string, string> {
 }
 
 function assignRenderLayer(id: number): string {
-	if (TRIGGER_IDS.has(id) || PORTAL_IDS.has(id)) return "1";
+	if (TRIGGER_IDS.has(id) || PORTAL_IDS.has(id) || BACKGROUND_IDS.has(id))
+		return "1";
 	if (DECO_GLOW_IDS.has(id)) return "3";
 
 	return "2";

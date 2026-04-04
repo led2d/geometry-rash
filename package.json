@@ -23,9 +23,11 @@
 		"@rollup/rollup-darwin-x64": "^4.60.1",
 		"@types/node": "^22.15.3",
 		"@types/pako": "^2.0.4",
+		"comlink": "^4.4.2",
 		"typescript": "^5.8.3",
 		"vite": "^6.3.3",
 		"vite-plugin-pwa": "^1.0.0",
+		"vite-plugin-static-copy": "^4.0.1",
 		"workbox-core": "^7.3.0",
 		"workbox-routing": "^7.3.0"
 	}

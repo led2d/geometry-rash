@@ -1,5 +1,6 @@
 import { registerSW } from "virtual:pwa-register";
 import { App, loadInitialLevel } from "./App";
+import { createExpandedAtlas } from "./atlas";
 
 function waitForSW(): Promise<void> {
 	return new Promise((resolve) => {
@@ -29,20 +30,23 @@ function setupGameFrame() {
 		}
 	});
 
-	waitForSW().then(() => {
-		if (document.querySelector('script[src="./assets/index-game.js"]')) return;
+	waitForSW()
+		.then(() => createExpandedAtlas())
+		.then(() => {
+			if (document.querySelector('script[src="./assets/index-game.js"]'))
+				return;
 
-		new ResizeObserver(() => {
-			window.dispatchEvent(new Event("resize"));
-		}).observe(document.documentElement);
+			new ResizeObserver(() => {
+				window.dispatchEvent(new Event("resize"));
+			}).observe(document.documentElement);
 
-		const script = document.createElement("script");
-		script.type = "module";
-		script.crossOrigin = "";
-		script.src = "./assets/index-game.js";
+			const script = document.createElement("script");
+			script.type = "module";
+			script.crossOrigin = "";
+			script.src = "./assets/index-game.js";
 
-		document.head.appendChild(script);
-	});
+			document.head.appendChild(script);
+		});
 }
 
 function setupSelector() {
