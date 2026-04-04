@@ -1,0 +1,85 @@
+export const LEVEL_NAMES: Record<number, string> = {
+	1: "Stereo Madness",
+	2: "Back On Track",
+	3: "Polargeist",
+	4: "Dry Out",
+	5: "Base After Base",
+	6: "Can't Let Go",
+	7: "Jumper",
+	8: "Time Machine",
+	9: "Cycles",
+	10: "xStep",
+	11: "Clutterfunk",
+	12: "Theory of Everything",
+	13: "Electroman Adventures",
+	14: "Clubstep",
+	15: "Electrodynamix",
+	16: "Hexagon Force",
+	17: "Blast Processing",
+	18: "Theory of Everything 2",
+	19: "Geometrical Dominator",
+	20: "Deadlocked",
+	21: "Fingerdash",
+	22: "Dash",
+	3001: "The Challenge",
+	5001: "The Seven Seas",
+	5002: "Viking Arena",
+	5003: "Airborne Robots",
+	5004: "Power Trip",
+};
+
+export const LEVEL_DIFFICULTY: Record<number, string> = {
+	1: "Easy",
+	2: "Easy",
+	3: "Normal",
+	4: "Normal",
+	5: "Hard",
+	6: "Hard",
+	7: "Harder",
+	8: "Harder",
+	9: "Harder",
+	10: "Insane",
+	11: "Insane",
+	12: "Insane",
+	13: "Insane",
+	14: "Easy Demon",
+	15: "Insane",
+	16: "Insane",
+	17: "Harder",
+	18: "Easy Demon",
+	19: "Harder",
+	20: "Easy Demon",
+	21: "Insane",
+	22: "Harder",
+	3001: "Hard",
+	5001: "Easy",
+	5002: "Normal",
+	5003: "Hard",
+	5004: "Harder",
+};
+
+export const DIFFICULTY_SPRITE: Record<string, string> = {
+	Auto: "diffIcon_auto_btn_001.png",
+	Easy: "diffIcon_01_btn_001.png",
+	Normal: "diffIcon_02_btn_001.png",
+	Hard: "diffIcon_03_btn_001.png",
+	Harder: "diffIcon_04_btn_001.png",
+	Insane: "diffIcon_05_btn_001.png",
+	"Easy Demon": "diffIcon_06_btn_001.png",
+	"Medium Demon": "diffIcon_07_btn_001.png",
+	"Hard Demon": "diffIcon_08_btn_001.png",
+	"Insane Demon": "diffIcon_09_btn_001.png",
+	"Extreme Demon": "diffIcon_10_btn_001.png",
+};
+
+export const LEVEL_IDS = [
+	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+	3001, 5001, 5002, 5003, 5004,
+];
+
+export interface ConversionStats {
+	total: number;
+	kept: number;
+	stripped: number;
+	score: number;
+}
