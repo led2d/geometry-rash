@@ -101,3 +101,34 @@ export function parsePlist(xml: string): Map<string, SpriteFrame> {
 
 	return result;
 }
+
+export interface PlistApi {
+	parseParticlePlist: (xml: string) => Record<string, number | string>;
+}
+
+export function parseParticlePlist(
+	xml: string,
+): Record<string, number | string> {
+	const parser = new DOMParser();
+	const doc = parser.parseFromString(xml, "text/xml");
+	const root = doc.querySelector("plist > dict");
+	if (!root) return {};
+
+	const result: Record<string, number | string> = {};
+	const keys = root.querySelectorAll(":scope > key");
+
+	for (const key of keys) {
+		const name = key.textContent;
+		if (!name) continue;
+		const next = key.nextElementSibling;
+		if (!next) continue;
+
+		if (next.tagName === "real" || next.tagName === "integer") {
+			result[name] = parseFloat(next.textContent || "0");
+		} else if (next.tagName === "string") {
+			result[name] = next.textContent || "";
+		}
+	}
+
+	return result;
+}

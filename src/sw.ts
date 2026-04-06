@@ -1,8 +1,28 @@
 declare const self: ServiceWorkerGlobalScope;
 
+import * as Comlink from "comlink";
 import { Logger } from "tslog";
 import { registerRoute } from "workbox-routing";
 import { convertLevel } from "./converter";
+import {
+	COLLISION_HOOK,
+	CREATION_HOOK,
+	DISPATCH_HOOK,
+	FLIP_HOOK,
+	generateCollisionReplacement,
+	generateCreationReplacement,
+	generateDispatchReplacement,
+	generateFlipReplacement,
+	generateOsTableReplacement,
+	generatePortalSubPatch,
+	generateSpawnReplacement,
+	OS_TABLE_HOOK,
+	type PadEffectConfig,
+	PORTAL_SUB_HOOK,
+	SPAWN_HOOK,
+	translateEffects,
+} from "./objects";
+import type { PlistApi } from "./plist";
 
 const log = new Logger({ name: "SW", type: "pretty" });
 
@@ -11,16 +31,6 @@ self.addEventListener("activate", (ev) => ev.waitUntil(self.clients.claim()));
 
 const DOMAIN_CHECK =
 	"const Ts=window[_0x6e411f(0xfa0)][_0x6e411f(0x1876)],bs=[0x67,0x65,0x6f,0x6d,0x65,0x74,0x72,0x79,0x64,0x61,0x73,0x68,0x2e,0x63,0x6f,0x6d]['map'](_0x1c1bb4=>String[_0x6e411f(0x370)](_0x1c1bb4))[_0x6e411f(0xb6b)]('');if(!(Ts===bs||Ts===_0x6e411f(0x7ec)+bs||Ts[_0x6e411f(0x696)]('.'+bs)||_0x6e411f(0x10b9)===Ts))throw document['body']['innerHTML']='',new Error('');";
-
-const OS_TABLE_HOOK = "=!0x0);function ls(";
-const OS_TABLE_PATCH = [
-	"=!0x0);",
-	"os[32]={'type':ss,'frame':null,'gridW':0,'gridH':0};",
-	"os[33]={'type':ss,'frame':null,'gridW':0,'gridH':0};",
-	"os[73]={'type':Ji,'frame':'square_c_05_001.png','gridW':1,'gridH':1};",
-	"os[110]={'type':$i,'frame':'d_chain_02_001.png','gridW':0,'gridH':0};",
-	"function ls(",
-].join("");
 
 const MUSIC_MAP: Record<number, string> = {
 	1: "StereoMadness",
@@ -61,6 +71,52 @@ async function getLevelId(clientId: string): Promise<number> {
 	return parseInt(url.searchParams.get("level") || "1", 10) || 1;
 }
 
+const comlinkApiCache = new Map<string, Comlink.Remote<PlistApi>>();
+
+async function getComlinkApi(
+	clientId: string,
+): Promise<Comlink.Remote<PlistApi>> {
+	const cached = comlinkApiCache.get(clientId);
+	if (cached) return cached;
+
+	const client = await self.clients.get(clientId);
+	if (!client) throw new Error(`No client found for ${clientId}`);
+
+	const channel = new MessageChannel();
+	client.postMessage({ type: "comlink-init" }, [channel.port2]);
+
+	const api = Comlink.wrap<PlistApi>(channel.port1);
+	comlinkApiCache.set(clientId, api);
+	return api;
+}
+
+let effectsCache: PadEffectConfig | null = null;
+
+async function loadEffects(clientId: string): Promise<PadEffectConfig> {
+	if (effectsCache) return effectsCache;
+
+	const api = await getComlinkApi(clientId);
+
+	const [bumpResp, ringResp] = await Promise.all([
+		fetch("/assets/steam/bumpEffect.plist"),
+		fetch("/assets/steam/ringEffect.plist"),
+	]);
+
+	const [bumpXml, ringXml] = await Promise.all([
+		bumpResp.text(),
+		ringResp.text(),
+	]);
+
+	const [bumpData, ringData] = await Promise.all([
+		api.parseParticlePlist(bumpXml),
+		api.parseParticlePlist(ringXml),
+	]);
+
+	effectsCache = translateEffects(bumpData, ringData);
+	log.info("Loaded particle effects via Comlink IPC", effectsCache);
+	return effectsCache;
+}
+
 registerRoute(
 	({ url }) =>
 		url.pathname === "/assets/GJ_WebSheet.json" ||
@@ -80,12 +136,28 @@ registerRoute(
 
 registerRoute(
 	({ url }) => url.pathname === "/assets/index-game.js",
-	async () => {
-		const resp = await fetch("/assets/index-game.js");
+	async ({ event }) => {
+		const fe = event as FetchEvent;
+
+		const [resp, effects] = await Promise.all([
+			fetch("/assets/index-game.js"),
+			loadEffects(fe.clientId),
+		]);
+
 		let js = await resp.text();
 
 		js = js.replace(DOMAIN_CHECK, "");
-		js = js.replace(OS_TABLE_HOOK, OS_TABLE_PATCH);
+		js = js.replace(OS_TABLE_HOOK, generateOsTableReplacement());
+		js = js.replace(PORTAL_SUB_HOOK, generatePortalSubPatch());
+		js = js.replace(SPAWN_HOOK, generateSpawnReplacement(effects));
+		js = js.replace(CREATION_HOOK, generateCreationReplacement());
+		js = js.replace(DISPATCH_HOOK, generateDispatchReplacement(effects));
+		js = js.replace(COLLISION_HOOK, generateCollisionReplacement());
+		js = js.replace(FLIP_HOOK, generateFlipReplacement());
+
+		log.info(
+			"Applied patches: DRM, os table, portal sub, spawn, creation, dispatch, collision, flip",
+		);
 
 		return new Response(js, {
 			headers: { "Content-Type": "application/javascript; charset=utf-8" },

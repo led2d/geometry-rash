@@ -1,6 +1,11 @@
 import { registerSW } from "virtual:pwa-register";
+import * as Comlink from "comlink";
 import { App, loadInitialLevel } from "./App";
 import { createExpandedAtlas } from "./atlas";
+import type { PlistApi } from "./plist";
+import { parseParticlePlist } from "./plist";
+
+const plistApi: PlistApi = { parseParticlePlist };
 
 function waitForSW(): Promise<void> {
 	return new Promise((resolve) => {
@@ -18,6 +23,11 @@ function waitForSW(): Promise<void> {
 
 function setupGameFrame() {
 	navigator.serviceWorker?.addEventListener("message", (ev) => {
+		if (ev.data?.type === "comlink-init" && ev.ports[0]) {
+			Comlink.expose(plistApi, ev.ports[0]);
+			return;
+		}
+
 		if (ev.data?.type === "conversion-stats") {
 			window.parent.postMessage(
 				{

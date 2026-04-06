@@ -1,5 +1,5 @@
 import { createReadStream, existsSync, statSync } from "node:fs";
-import { copyFile, mkdir } from "node:fs/promises";
+import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { jsxPlugin } from "dreamland/vite";
@@ -13,12 +13,33 @@ const STEAM_SHEETS = [
 	"GJ_GameSheet02-hd.png",
 	"GJ_GameSheetGlow-hd.plist",
 	"GJ_GameSheetGlow-hd.png",
+	"bumpEffect.plist",
+	"ringEffect.plist",
 ];
 
 const MIME: Record<string, string> = {
 	".png": "image/png",
 	".plist": "application/xml",
 };
+
+const GD_ICON_CDN =
+	"https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/322170/7fb2e71773468dbd98d56c733b604c92f5ab0ad4.jpg";
+
+const faviconCachePath = join(homedir(), ".cache", "gd-favicon.jpg");
+
+async function createFavicon(): Promise<string | null> {
+	if (existsSync(faviconCachePath)) return faviconCachePath;
+	try {
+		await mkdir(join(homedir(), ".cache"), { recursive: true });
+		const resp = await fetch(GD_ICON_CDN);
+		if (!resp.ok) return null;
+		const bytes = new Uint8Array(await resp.arrayBuffer());
+		await writeFile(faviconCachePath, bytes);
+		return faviconCachePath;
+	} catch {
+		return null;
+	}
+}
 
 function steamAssetsPlugin(steamPath: string, files: string[]): Plugin {
 	const fileMap = new Map(
@@ -29,6 +50,20 @@ function steamAssetsPlugin(steamPath: string, files: string[]): Plugin {
 		name: "steam-assets",
 		configureServer(server) {
 			server.middlewares.use((req, res, next) => {
+				if (req.url === "/favicon.png") {
+					createFavicon().then((faviconPath) => {
+						if (!faviconPath) return next();
+						const stat = statSync(faviconPath);
+						res.writeHead(200, {
+							"Content-Type": "image/jpeg",
+							"Content-Length": stat.size,
+							"Cache-Control": "no-cache",
+						});
+						createReadStream(faviconPath).pipe(res);
+					});
+					return;
+				}
+
 				const absPath = fileMap.get(req.url ?? "");
 				if (!absPath || !existsSync(absPath)) return next();
 
@@ -50,6 +85,11 @@ function steamAssetsPlugin(steamPath: string, files: string[]): Plugin {
 				if (existsSync(absPath)) {
 					await copyFile(absPath, join(destDir, basename(absPath)));
 				}
+			}
+
+			const faviconPath = await createFavicon();
+			if (faviconPath) {
+				await copyFile(faviconPath, join(outDir, "favicon.png"));
 			}
 		},
 	};

@@ -1,34 +1,11 @@
 import { Logger } from "tslog";
+import { SPRITE_REQUIREMENTS } from "./objects";
 import { parsePlist, type SpriteFrame } from "./plist";
 
 const log = new Logger({ name: "Atlas" });
 
 const ATLAS_CACHE = "gd-expanded-atlas";
 const PADDING = 2;
-
-// Only the sprites from 1-7 to test are included to test right now
-const MERGED_SPRITES: Record<string, string[]> = {
-	"GJ_GameSheet-hd": [
-		"bump_01_001.png",
-		"bump_03_001.png",
-		"gravbump_01_001.png",
-		"ring_01_001.png",
-		"square_b_01_001.png",
-		"square_b_04_001.png",
-		"square_b_06_001.png",
-		"blockOutline_02_001.png",
-		"d_ball_05_001.png",
-		"d_chain_02_001.png",
-		"square_c_05_001.png",
-	],
-	"GJ_GameSheet02-hd": [
-		"portal_01_front_001.png",
-		"portal_01_back_001.png",
-		"portal_02_front_001.png",
-		"portal_02_back_001.png",
-		"secretCoin_01_001.png",
-	],
-};
 
 interface PhaserFrame {
 	filename: string;
@@ -89,12 +66,12 @@ function extractSpriteToCanvas(
 			sheetImg,
 			frame.x,
 			frame.y,
-			frame.h,
 			frame.w,
-			-frame.sourceH / 2 + frame.offsetY,
-			-frame.sourceW / 2 - frame.offsetX,
 			frame.h,
+			-frame.w / 2 + frame.offsetY,
+			-frame.h / 2 + frame.offsetX,
 			frame.w,
+			frame.h,
 		);
 	} else {
 		const dx = (frame.sourceW - frame.w) / 2 + frame.offsetX;
@@ -126,7 +103,7 @@ export async function createExpandedAtlas(): Promise<void> {
 
 	log.info("Building expanded atlas...");
 
-	const sheetNames = Object.keys(MERGED_SPRITES);
+	const sheetNames = Object.keys(SPRITE_REQUIREMENTS);
 
 	const [originalAtlas, originalImg, ...steamSheetResults] = await Promise.all([
 		fetch("/assets/GJ_WebSheet.json").then((resp) =>
@@ -150,7 +127,7 @@ export async function createExpandedAtlas(): Promise<void> {
 		sheetName: string;
 	}[] = [];
 
-	for (const [sheetName, spriteNames] of Object.entries(MERGED_SPRITES)) {
+	for (const [sheetName, spriteNames] of Object.entries(SPRITE_REQUIREMENTS)) {
 		const sheet = steamSheets.get(sheetName);
 		if (!sheet) continue;
 

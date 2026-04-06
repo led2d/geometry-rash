@@ -61,23 +61,6 @@ const TitleBar: Component = () => (
 				)}
 			/>
 		</div>
-		<button
-			type="button"
-			id="fullscreen-btn"
-			on:click={() => {
-				const iframe = document.getElementById(
-					"game-frame",
-				) as HTMLIFrameElement;
-
-				if (document.fullscreenElement) {
-					document.exitFullscreen();
-				} else {
-					iframe.requestFullscreen();
-				}
-			}}
-		>
-			Fullscreen
-		</button>
 	</div>
 );
 
