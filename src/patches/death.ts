@@ -9,7 +9,6 @@ $modify(
 		`this['p']['_eeBall']=false;`,
 		`this['p']['_eeBallCanClick']=true;`,
 		`this[_0x2c3b9f(${addr.setShipVisual})](false);`,
-		`for(var _bl of this[_0x2c3b9f(${addr._playerLayers})])if(_bl&&_bl[_0x2c3b9f(${addr.sprite})])_bl[_0x2c3b9f(${addr.sprite})][_0x2c3b9f(${addr.setScale})](1);`,
 		`}`,
 		`this['p']['_eeDart']=false;`,
 		`this['p']['_eeRobot']=false;`,
@@ -20,6 +19,8 @@ $modify(
 		`this['p']['_eeUfoCanClick']=false;`,
 		`this['p']['_eeSpeedMult']=1;`,
 		`this['p']['_eeMirror']=false;`,
+		`this['p']['_eeMini']=false;`,
+		`for(var _bl of this[_0x2c3b9f(${addr._playerLayers})])if(_bl&&_bl[_0x2c3b9f(${addr.sprite})])_bl[_0x2c3b9f(${addr.sprite})][_0x2c3b9f(${addr.setScale})](1);`,
 		`if(this['p'][_0x2c3b9f(0x429)])return;`,
 	].join(""),
 );
