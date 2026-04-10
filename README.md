@@ -18,7 +18,7 @@ No, it's not a direct port of the Cocos2d source; rather, it uses Phaser 3.
 If you want to try out this project:
 
 1. Install <https://chromewebstore.google.com/detail/save-all-resources/abpdnfjocnmdomablahdcfnoggeeiedb>
-2. Download <https://geometrydash.com/play>
+2. Download <https://geometrydash.com/game/index.html>
 3. Get the assets from Devtools
 4. Put them at the root of this repository
 5. Create an ENV var `GD_STEAM_RESOURCES` to a backup of the `resources` folder from the Steam install
